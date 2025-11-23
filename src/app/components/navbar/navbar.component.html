@@ -71,6 +71,12 @@
           routerLinkActive="active text-primary"
           >Rh</a
         >
+                <a
+          class="nav-link"
+          [routerLink]="['search-cv']"
+          routerLinkActive="active text-primary"
+          >Search</a
+        >
         <a
           *ngIf="!authService.isAuthenticated()"
           class="nav-link"
