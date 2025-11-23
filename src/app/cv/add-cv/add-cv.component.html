@@ -1,30 +1,78 @@
 <p>add-cv works!</p>
+
 <form [formGroup]="form">
+  <!-- Nom -->
   Name:
   <input type="text" class="form-control" formControlName="name" />
   <div
-    *ngIf="form.get('name')?.errors && form.get('name')?.touched"
+    *ngIf="name?.errors && name?.touched"
     class="alert alert-danger"
   >
     Ce champ est obligatoire
   </div>
+
+  <!-- Prénom -->
   Firstname:
-  <input type="text" class="form-control" formControlName="firstname" /> Age:
-  <input type="text" class="form-control" formControlName="age" /> Cin:
-  <input type="text" class="form-control" formControlName="cin" />
+  <input type="text" class="form-control" formControlName="firstname" />
   <div
-    *ngIf="
-      form.errors && form.errors['cinFirstCars'] && cin?.touched && age?.touched
-    "
+    *ngIf="firstname?.errors && firstname?.touched"
     class="alert alert-danger"
   >
-    Cette Cin est invalide
+    Ce champ est obligatoire
   </div>
-  Job: <input type="text" class="form-control" formControlName="job" /> Path:
-  <input type="text" class="form-control" formControlName="path" />
+  
+  <!-- Âge -->
+  Age:
+  <input type="number" class="form-control" formControlName="age" />
+  <div
+    *ngIf="age?.errors && age?.touched"
+    class="alert alert-danger"
+  >
+    L'âge est obligatoire et doit être positif
+  </div>
+  
+  <!-- CIN -->
+  Cin:
+  <input type="text" class="form-control" formControlName="cin" />
+  <div
+    *ngIf="cin?.errors && cin?.touched"
+    class="alert alert-danger"
+  >
+    <div *ngIf="cin?.errors?.['required']">Le CIN est obligatoire</div>
+    <div *ngIf="cin?.errors?.['pattern']">Le CIN doit contenir exactement 8 chiffres</div>
+  </div>
 
-  <button [disabled]="form.invalid" class="btn btn-primary" (click)="addCv()">
+  <!-- Profession -->
+  Job: 
+  <input type="text" class="form-control" formControlName="job" />
+  <div
+    *ngIf="job?.errors && job?.touched"
+    class="alert alert-danger"
+  >
+    Ce champ est obligatoire
+  </div>
+  
+  <!-- Chemin de l'image avec protection des mineurs -->
+  Path:
+  <input 
+    type="text" 
+    class="form-control" 
+    formControlName="path" 
+    [disabled]="isMinor"
+    [class.disabled-field]="isMinor"
+  />
+  
+  <!-- Message d'information pour les mineurs -->
+  <div *ngIf="isMinor" class="alert alert-warning mt-2">
+    ⚠️ Pour protéger les informations personnelles des mineurs, le champ image est désactivé.
+  </div>
+
+  <button 
+    [disabled]="form.invalid" 
+    class="btn btn-primary mt-3" 
+    (click)="addCv()"
+    type="button"
+  >
     add cv
   </button>
 </form>
-{{ form.errors | json }}
