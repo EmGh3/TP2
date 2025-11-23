@@ -19,51 +19,51 @@
   <!-- Nom -->
   Name:
   <input type="text" class="form-control" formControlName="name" />
-  <div
-    *ngIf="name?.errors && name?.touched"
-    class="alert alert-danger"
-  >
+  <div *ngIf="name?.errors && name?.touched" class="alert alert-danger">
     Ce champ est obligatoire
   </div>
 
   <!-- Prénom -->
   Firstname:
   <input type="text" class="form-control" formControlName="firstname" />
-  <div
-    *ngIf="firstname?.errors && firstname?.touched"
-    class="alert alert-danger"
-  >
+  <div *ngIf="firstname?.errors && firstname?.touched" class="alert alert-danger">
     Ce champ est obligatoire
   </div>
   
   <!-- Âge -->
   Age:
   <input type="number" class="form-control" formControlName="age" />
-  <div
-    *ngIf="age?.errors && age?.touched"
-    class="alert alert-danger"
-  >
-    L'âge est obligatoire et doit être positif
+  <div *ngIf="age?.errors && age?.touched" class="alert alert-danger">
+    <div *ngIf="age?.errors?.['required']">L'âge est obligatoire</div>
+    <div *ngIf="age?.errors?.['min']">L'âge doit être positif</div>
   </div>
   
   <!-- CIN -->
   Cin:
-  <input type="text" class="form-control" formControlName="cin" />
-  <div
-    *ngIf="cin?.errors && cin?.touched"
-    class="alert alert-danger"
-  >
-    <div *ngIf="cin?.errors?.['required']">Le CIN est obligatoire</div>
-    <div *ngIf="cin?.errors?.['pattern']">Le CIN doit contenir exactement 8 chiffres</div>
+  <input 
+    type="text" 
+    class="form-control" 
+    formControlName="cin" 
+    [class.is-valid]="cin?.valid && cin?.touched"
+    [class.is-invalid]="cin?.invalid && cin?.touched"
+  />
+  
+  <!-- Messages de validation du CIN -->
+  <div *ngIf="cin?.touched" class="mt-1">
+    <div *ngIf="isCheckingCin" class="text-info">
+      <i class="bi bi-hourglass-split me-1"></i>{{ cinValidationMessage }}
+    </div>
+    <div *ngIf="!isCheckingCin && cinValidationMessage" 
+         [class.text-success]="cin?.valid"
+         [class.text-danger]="cin?.invalid">
+      {{ cinValidationMessage }}
+    </div>
   </div>
 
   <!-- Profession -->
   Job: 
   <input type="text" class="form-control" formControlName="job" />
-  <div
-    *ngIf="job?.errors && job?.touched"
-    class="alert alert-danger"
-  >
+  <div *ngIf="job?.errors && job?.touched" class="alert alert-danger">
     Ce champ est obligatoire
   </div>
   
@@ -79,18 +79,26 @@
   
   <!-- Message d'information pour les mineurs -->
   <div *ngIf="isMinor" class="alert alert-warning mt-2">
-    Pour protéger les informations personnelles des mineurs, le champ image est désactivé.
+    ⚠️ Pour protéger les informations personnelles des mineurs, le champ image est désactivé.
+  </div>
+
+  <!-- Erreur de corrélation âge/CIN -->
+  <div *ngIf="ageCinError" class="alert alert-danger mt-2">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    {{ ageCinError }}
   </div>
 
   <!-- Boutons d'action -->
   <div class="mt-3">
     <button 
-      [disabled]="form.invalid" 
+      [disabled]="form.invalid || isCheckingCin" 
       class="btn btn-primary me-2"
       (click)="addCv()"
       type="button"
     >
-      <i class="bi bi-check-lg me-1"></i>Ajouter CV
+      <i class="bi bi-check-lg me-1"></i>
+      <span *ngIf="isCheckingCin">Validation...</span>
+      <span *ngIf="!isCheckingCin">Ajouter CV</span>
     </button>
     
     <button 
