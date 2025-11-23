@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import {
   AbstractControl,
   FormBuilder,
@@ -10,12 +10,15 @@ import { ToastrService } from "ngx-toastr";
 import { APP_ROUTES } from "src/config/routes.config";
 import { Cv } from "../model/cv";
 
+// Clé pour le localStorage
+const DRAFT_KEY = 'cv_form_draft';
+
 @Component({
   selector: "app-add-cv",
   templateUrl: "./add-cv.component.html",
   styleUrls: ["./add-cv.component.css"],
 })
-export class AddCvComponent implements OnInit {
+export class AddCvComponent implements OnInit, OnDestroy {
   constructor(
     private cvService: CvService,
     private router: Router,
@@ -32,48 +35,165 @@ export class AddCvComponent implements OnInit {
     age: [null, [Validators.required, Validators.min(0)]],
   });
 
+  // Timer pour la sauvegarde automatique
+  private autoSaveTimer: any;
+
   ngOnInit() {
     console.log('AddCvComponent initialisé');
     
+    // Charger les données sauvegardées
+    this.loadDraft();
+    
+    // Surveiller les changements d'âge
     this.age.valueChanges.subscribe(age => {
       console.log('Âge changé:', age);
       this.updatePathFieldState(age);
     });
 
-    this.form.statusChanges.subscribe(status => {
-      console.log('Statut du formulaire:', status);
+    // Sauvegarde automatique à chaque changement
+    this.form.valueChanges.subscribe(() => {
+      this.autoSave();
     });
+
+    // Sauvegarder aussi quand l'utilisateur quitte la page
+    window.addEventListener('beforeunload', this.saveDraft.bind(this));
+  }
+
+  ngOnDestroy() {
+    // Nettoyer le timer et l'event listener
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+    }
+    window.removeEventListener('beforeunload', this.saveDraft.bind(this));
+  }
+
+  private autoSave(): void {
+    // Délai pour éviter de sauvegarder à chaque frappe
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+    }
+    
+    this.autoSaveTimer = setTimeout(() => {
+      this.saveDraft();
+    }, 1000); // Sauvegarde après 1 seconde d'inactivité
+  }
+
+  private saveDraft(): void {
+    if (this.form.dirty && this.form.valid) {
+      const draftData = {
+        ...this.form.value,
+        savedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
+      console.log('Brouillon sauvegardé:', draftData);
+    }
+  }
+
+  private loadDraft(): void {
+    try {
+      const draft = localStorage.getItem(DRAFT_KEY);
+      if (draft) {
+        const draftData = JSON.parse(draft);
+        console.log('Brouillon chargé:', draftData);
+        
+        // Restaurer les valeurs du formulaire
+        this.form.patchValue({
+          name: draftData.name || '',
+          firstname: draftData.firstname || '',
+          path: draftData.path || '',
+          job: draftData.job || '',
+          cin: draftData.cin || '',
+          age: draftData.age || null
+        });
+
+        this.updatePathFieldState(draftData.age);
+        // Marquer le formulaire comme "dirty" pour refléter l'état restauré
+        this.form.markAsDirty();
+
+        this.toastr.info(
+          `Un brouillon a été restauré (sauvegardé le ${new Date(draftData.savedAt).toLocaleString()})`,
+          'Brouillon restauré',
+          { timeOut: 5000 }
+        );
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du brouillon:', error);
+    }
+  }
+
+  private clearDraft(): void {
+    localStorage.removeItem(DRAFT_KEY);
+    console.log('Brouillon supprimé');
   }
 
   private updatePathFieldState(age: number | null): void {
-    console.log('Mise à jour du champ path pour âge:', age);
     const pathControl = this.path;
     
     if (age !== null && age < 18) {
-      console.log('Mineur détecté - désactivation du champ path');
       pathControl?.disable();
       pathControl?.setValue('');
     } else {
-      console.log('Majeur détecté - activation du champ path');
       pathControl?.enable();
     }
   }
 
   addCv() {
-  console.log('Bouton addCv cliqué');
-  if (this.form.invalid) {
-    this.toastr.warning('Veuillez corriger les erreurs dans le formulaire', 'Formulaire invalide');
-    return;
-  }
-  const name = this.name.value;
-  const firstname = this.firstname.value;
-  this.router.navigate([APP_ROUTES.cv]);
-  this.toastr.success(`Le cv ${firstname} ${name} a été ajouté avec succès`);
+    console.log('Bouton addCv cliqué');
 
-}
+    this.markAllFieldsAsTouched();
+
+    if (this.form.invalid) {
+      this.toastr.warning('Veuillez corriger les erreurs dans le formulaire', 'Formulaire invalide');
+      return;
+    }
+
+    const formData = { ...this.form.value };
+    
+    // Pour les mineurs, s'assurer que path est vide
+    if (formData.age && formData.age < 18) {
+      formData.path = '';
+    }
+
+    // Créer un objet Cv complet avec ID généré
+    const cvData: Cv = {
+      id: this.generateId(),
+      name: formData.name || '',
+      firstname: formData.firstname || '',
+      job: formData.job || '',
+      path: formData.path || '',
+      cin: formData.cin || '',
+      age: formData.age || 0
+    };
+
+    console.log('Données préparées:', cvData);
+
+    this.toastr.success(`Le cv ${cvData.firstname} ${cvData.name} a été ajouté avec succès`);
+    
+    // Supprimer le brouillon après soumission réussie
+    this.clearDraft();
+    
+    // Réinitialiser le formulaire
+    this.form.reset();
+    this.form.markAsPristine();
+    this.router.navigate([APP_ROUTES.cv]);
+  }
+
+  // Méthode pour effacer manuellement le brouillon
+  clearForm(): void {
+    if (confirm('Voulez-vous vraiment effacer le formulaire en cours ?')) {
+      this.form.reset();
+      this.clearDraft();
+      this.toastr.info('Formulaire effacé', 'Succès');
+    }
+  }
+
+  // Vérifier s'il y a un brouillon sauvegardé
+  get hasDraft(): boolean {
+    return localStorage.getItem(DRAFT_KEY) !== null;
+  }
 
   private generateId(): number {
-    // Générer un ID unique (timestamp ou aléatoire)
     return Date.now() + Math.floor(Math.random() * 1000);
   }
 
@@ -106,7 +226,6 @@ export class AddCvComponent implements OnInit {
     return this.form.get("cin")!;
   }
 
-  // Méthode pour vérifier si la personne est mineure
   get isMinor(): boolean {
     const ageValue = this.age.value;
     return ageValue !== null && ageValue < 18;
