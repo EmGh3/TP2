@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter } from "@angular/core";
+import { Component, Input } from "@angular/core";
 import { Cv } from "../model/cv";
+import { Router } from '@angular/router';
 
 @Component({
   selector: "app-list",
@@ -8,4 +9,12 @@ import { Cv } from "../model/cv";
 })
 export class ListComponent {
   @Input() cvs: Cv[] | null = [];
+
+  constructor(private router: Router) {}
+
+  goToDetails(cv: Cv | null) {
+    if (!cv) { return; }
+    // Navigue vers /cv/:id 
+    this.router.navigate(['cv', cv.id]);
+  }
 }

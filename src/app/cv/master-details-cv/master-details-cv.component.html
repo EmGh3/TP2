@@ -1,0 +1,10 @@
+<div class="master-details-container" style="display:flex; gap:1rem;">
+  <div class="master" style="flex: 0 0 320px;">
+    <h5>Liste des CVs</h5>
+    <app-list [cvs]="cvs"></app-list>
+  </div>
+
+  <div class="detail" style="flex: 1; border-left:1px solid #eee; padding-left:1rem;">
+    <router-outlet></router-outlet>
+  </div>
+</div>

@@ -52,6 +52,7 @@ import { ServiceWorkerModule } from "@angular/service-worker";
 import { AutocompleteComponent } from "./cv/autocomplete/autocomplete.component";
 import { SliderComponent } from "./rxjs/slider/slider.component";
 import { CvSearchComponent } from "./cv/cv-search/cv-search.component";
+import { MasterDetailsCvComponent } from "./cv/master-details-cv/master-details-cv.component";
 
 @NgModule({
   declarations: [
@@ -91,7 +92,8 @@ import { CvSearchComponent } from "./cv/cv-search/cv-search.component";
     RhComponent,
     UserListComponent,
     ProductsComponent,
-    CvSearchComponent
+    CvSearchComponent,
+    MasterDetailsCvComponent,  
   ],
   bootstrap: [AppComponent],
   imports: [
