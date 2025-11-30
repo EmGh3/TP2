@@ -11,14 +11,20 @@ export class TestObservableComponent {
   firstObservable$: Observable<number>;
 
   constructor(private toaster: ToastrService) {
+    // Provide a teardown function so the interval is cleared when the observable
+    // completes or the subscription is unsubscribed.
     this.firstObservable$ = new Observable((observer) => {
       let i = 5;
-      setInterval(() => {
+      const id = setInterval(() => {
         if (!i) {
           observer.complete();
+        } else {
+          observer.next(i--);
         }
-        observer.next(i--);
       }, 1000);
+
+      // Teardown: clear the interval when the subscription is disposed
+      return () => clearInterval(id);
     });
   }
 }

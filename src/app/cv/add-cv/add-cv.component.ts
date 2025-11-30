@@ -1,4 +1,6 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import {
   AbstractControl,
   FormBuilder,
@@ -22,6 +24,9 @@ const DRAFT_KEY = 'cv_form_draft';
   styleUrls: ["./add-cv.component.css"],
 })
 export class AddCvComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  // keep a reference to the bound saveDraft handler so removeEventListener works
+  private boundSaveDraft = () => this.saveDraft();
   constructor(
     private cvService: CvService,
     private router: Router,
@@ -69,7 +74,7 @@ export class AddCvComponent implements OnInit, OnDestroy {
     this.loadDraft();
     
     // Surveiller les changements d'âge
-    this.age.valueChanges.subscribe(age => {
+    this.age.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(age => {
       console.log('Âge changé:', age);
       this.updatePathFieldState(age);
       // Déclencher la validation de corrélation âge/CIN
@@ -77,14 +82,14 @@ export class AddCvComponent implements OnInit, OnDestroy {
     });
 
     // Surveiller les changements du CIN
-    this.cin.valueChanges.subscribe(cin => {
+    this.cin.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(cin => {
       if (cin && cin.length === 8) {
         this.validateAgeCinCorrelation();
       }
     });
 
     // Surveiller l'état de validation du CIN
-    this.cin.statusChanges.subscribe(status => {
+    this.cin.statusChanges.pipe(takeUntil(this.destroy$)).subscribe(status => {
       if (status === 'PENDING') {
         this.isCheckingCin = true;
         this.cinValidationMessage = 'Vérification de l\'unicité du CIN...';
@@ -98,20 +103,24 @@ export class AddCvComponent implements OnInit, OnDestroy {
     });
 
     // Sauvegarde automatique à chaque changement
-    this.form.valueChanges.subscribe(() => {
+    this.form.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.autoSave();
     });
 
     // Sauvegarder aussi quand l'utilisateur quitte la page
-    window.addEventListener('beforeunload', this.saveDraft.bind(this));
+    window.addEventListener('beforeunload', this.boundSaveDraft);
   }
 
   ngOnDestroy() {
     // Nettoyer le timer et l'event listener
+    // signal subscriptions to complete
+    this.destroy$.next();
+    this.destroy$.complete();
+
     if (this.autoSaveTimer) {
       clearTimeout(this.autoSaveTimer);
     }
-    window.removeEventListener('beforeunload', this.saveDraft.bind(this));
+    window.removeEventListener('beforeunload', this.boundSaveDraft);
   }
 
   private validateAgeCinCorrelation(): void {
