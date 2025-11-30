@@ -1,10 +1,11 @@
-import {Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {User, UsersService} from "../users.service";
 import * as ChartJs from 'chart.js/auto';
 @Component({
   selector: 'app-rh',
   templateUrl: './rh.component.html',
-  styleUrls: ['./rh.component.css']
+  styleUrls: ['./rh.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RhComponent implements OnInit {
   oddUsers: User[];
@@ -16,10 +17,12 @@ export class RhComponent implements OnInit {
   }
 
   ngOnInit(): void {
-        this.createChart();
+      this.createChart();
     }
   addUser(list: User[], newUser: string) {
     this.userService.addUser(list, newUser);
+    // déclencher la mise à  jour du chart après l'ajout d'un utilisateur
+    this.updateChartData();
   }
   createChart(){
     const data = [
@@ -40,4 +43,16 @@ export class RhComponent implements OnInit {
     }
     });
   }
+  private updateChartData() {
+  const data = this.getChartData();
+  this.chart.data.datasets[0].data = data.map(row => row.count);
+  this.chart.update('none'); // Update sans animation
+}
+
+private getChartData() {
+  return [
+    { users: 'Workers', count: this.oddUsers.length },
+    { users: 'Boss', count: this.evenUsers.length },
+  ];
+}
 }
