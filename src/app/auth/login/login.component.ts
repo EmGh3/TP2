@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { CredentialsDto } from '../dto/credentials.dto';
 import { ROUTES, Router } from '@angular/router';
@@ -16,16 +17,14 @@ export class LoginComponent {
     private router: Router,
     private toastr: ToastrService
   ) {}
-  login(credentials: CredentialsDto) {
-    this.authService.login(credentials).subscribe({
-      next: (response) => {
-        localStorage.setItem('token', response.id);
-        this.toastr.success(`Bienvenu chez vous :)`);
-        this.router.navigate([APP_ROUTES.cv]);
-      },
-      error: (error) => {
-        this.toastr.error('Veuillez vérifier vos credentials');
-      },
-    });
+  async login(credentials: CredentialsDto) {
+    try {
+      const response = await firstValueFrom(this.authService.login(credentials));
+      localStorage.setItem('token', response.id);
+      this.toastr.success(`Bienvenu chez vous :)`);
+      this.router.navigate([APP_ROUTES.cv]);
+    } catch (error) {
+      this.toastr.error('Veuillez vérifier vos credentials');
+    }
   }
 }
