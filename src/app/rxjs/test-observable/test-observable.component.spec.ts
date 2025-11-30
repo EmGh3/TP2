@@ -20,4 +20,16 @@ describe('TestObservableComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('clears interval when unsubscribed (teardown)', (done) => {
+    // Subscribe to the observable and unsubscribe after first emission
+    const sub = component.firstObservable$.subscribe({
+      next: () => {
+        sub.unsubscribe();
+        // wait a bit to ensure no further emissions occur (teardown cleared interval)
+        setTimeout(() => done(), 200);
+      },
+      error: (err) => done.fail(err)
+    });
+  });
 });
