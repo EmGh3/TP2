@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { Subject } from 'rxjs';
+import { Component, OnInit, OnDestroy, Renderer2 } from "@angular/core";
+import { Subject, Subscription, timer } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import {
   AbstractControl,
@@ -31,7 +31,8 @@ export class AddCvComponent implements OnInit, OnDestroy {
     private cvService: CvService,
     private router: Router,
     private toastr: ToastrService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private renderer: Renderer2
   ) {}
 
   // États pour l'UI
@@ -64,8 +65,10 @@ export class AddCvComponent implements OnInit, OnDestroy {
     }
   );
 
-  // Timer pour la sauvegarde automatique
-  private autoSaveTimer: any;
+  // Auto-save subscription (replaces raw setTimeout)
+  private autoSaveSub: Subscription | null = null;
+  // renderer unlisten function for global listener
+  private unlistenBeforeUnload: (() => void) | null = null;
 
   ngOnInit() {
     console.log('AddCvComponent initialisé');
@@ -107,20 +110,26 @@ export class AddCvComponent implements OnInit, OnDestroy {
       this.autoSave();
     });
 
-    // Sauvegarder aussi quand l'utilisateur quitte la page
-    window.addEventListener('beforeunload', this.boundSaveDraft);
+    // Sauvegarder aussi quand l'utilisateur quitte la page (use Renderer2)
+    this.unlistenBeforeUnload = this.renderer.listen('window', 'beforeunload', this.boundSaveDraft);
   }
 
   ngOnDestroy() {
-    // Nettoyer le timer et l'event listener
     // signal subscriptions to complete
     this.destroy$.next();
     this.destroy$.complete();
 
-    if (this.autoSaveTimer) {
-      clearTimeout(this.autoSaveTimer);
+    // Clean up auto-save subscription
+    if (this.autoSaveSub) {
+      this.autoSaveSub.unsubscribe();
+      this.autoSaveSub = null;
     }
-    window.removeEventListener('beforeunload', this.boundSaveDraft);
+
+    // Remove global listener using renderer unlisten
+    if (this.unlistenBeforeUnload) {
+      this.unlistenBeforeUnload();
+      this.unlistenBeforeUnload = null;
+    }
   }
 
   private validateAgeCinCorrelation(): void {
@@ -150,13 +159,12 @@ export class AddCvComponent implements OnInit, OnDestroy {
 
   private autoSave(): void {
     // Délai pour éviter de sauvegarder à chaque frappe
-    if (this.autoSaveTimer) {
-      clearTimeout(this.autoSaveTimer);
+    // schedule auto-save after 1 second; use RxJS timer and keep subscription
+    if (this.autoSaveSub) {
+      this.autoSaveSub.unsubscribe();
+      this.autoSaveSub = null;
     }
-    
-    this.autoSaveTimer = setTimeout(() => {
-      this.saveDraft();
-    }, 1000); // Sauvegarde après 1 seconde d'inactivité
+    this.autoSaveSub = timer(1000).subscribe(() => this.saveDraft());
   }
 
 private saveDraft(): void {
