@@ -25,6 +25,7 @@ export class AutocompleteComponent implements OnDestroy {
   showSuggestions = false;
   isLoading = false;
   noResults = false;
+  private blurTimeout: any;
 
   ngOnInit() {
     this.setupSearch();
@@ -129,7 +130,9 @@ private checkPartialMatch(text: string, searchTerm: string): boolean {
   }
 
   onInputBlur(): void {
-    setTimeout(() => {
+    // store the timeout so we can clear it on destroy to avoid setting state after
+    // the component is destroyed
+    this.blurTimeout = setTimeout(() => {
       this.showSuggestions = false;
     }, 200);
   }
@@ -159,5 +162,9 @@ private checkPartialMatch(text: string, searchTerm: string): boolean {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+
+    if (this.blurTimeout) {
+      clearTimeout(this.blurTimeout);
+    }
   }
 }
