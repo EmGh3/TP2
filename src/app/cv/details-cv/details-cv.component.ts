@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { Cv } from '../model/cv';
 import { CvService } from '../services/cv.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -23,26 +24,25 @@ export class DetailsCvComponent implements OnInit {
 
   ngOnInit() {
     const id = this.activatedRoute.snapshot.params['id'];
-    this.cvService.getCvById(+id).subscribe({
-        next: (cv) => {
-          this.cv = cv;
-        },
-        error: (e) => {
-          this.router.navigate([APP_ROUTES.cv]);
-        },
-      });
+    // use firstValueFrom for the one-shot HTTP call to avoid manual subscription
+    (async () => {
+      try {
+        this.cv = await firstValueFrom(this.cvService.getCvById(+id));
+      } catch (e) {
+        this.router.navigate([APP_ROUTES.cv]);
+      }
+    })();
   }
   deleteCv(cv: Cv) {
-    this.cvService.deleteCvById(cv.id).subscribe({
-      next: () => {
+    // use async/await for clarity for this one-shot HTTP call
+    (async () => {
+      try {
+        await firstValueFrom(this.cvService.deleteCvById(cv.id));
         this.toastr.success(`${cv.name} supprimé avec succès`);
         this.router.navigate([APP_ROUTES.cv]);
-      },
-      error: () => {
-        this.toastr.error(
-          `Problème avec le serveur veuillez contacter l'admin`
-        );
-      },
-    });
+      } catch (e) {
+        this.toastr.error(`Problème avec le serveur veuillez contacter l'admin`);
+      }
+    })();
   }
 }
