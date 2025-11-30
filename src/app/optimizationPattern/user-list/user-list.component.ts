@@ -2,10 +2,16 @@ import {Component, Input, Output, EventEmitter} from '@angular/core';
 import {User} from "../users.service";
 
 export const fibonnaci = (n: number): number => {
-  if (n==1 || n==0) {
-    return 1;
+  // iterative implementation to avoid deep recursion and heavy stack usage
+  if (n <= 0) return 0;
+  if (n === 1) return 1;
+  let a = 0, b = 1;
+  for (let i = 2; i <= n; i++) {
+    const next = a + b;
+    a = b;
+    b = next;
   }
-  return fibonnaci(n-1) + fibonnaci(n-2);
+  return b;
 }
 
 @Component({
