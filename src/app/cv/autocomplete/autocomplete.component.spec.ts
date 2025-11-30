@@ -18,4 +18,17 @@ describe('AutocompleteComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should clear pending blur timeout on destroy', () => {
+    // simulate a pending blur timeout that would hide suggestions
+    const fakeTimeout = setTimeout(() => {}, 10000);
+    component['blurTimeout'] = fakeTimeout as any;
+
+    spyOn(window, 'clearTimeout');
+
+    // call destroy
+    component.ngOnDestroy();
+
+    expect(window.clearTimeout).toHaveBeenCalledWith(fakeTimeout);
+  });
 });
