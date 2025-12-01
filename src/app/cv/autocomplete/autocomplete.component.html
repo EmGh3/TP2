@@ -1,3 +1,75 @@
-<form [formGroup]="form">
-  <input type="text" class="form-control" formControlName="search" />
-</form>
+<div class="autocomplete-container">
+  <div class="search-input-wrapper">
+    <input
+      type="text"
+      [formControl]="search"
+      placeholder="Rechercher un CV par nom, prénom, poste..."
+      (focus)="onInputFocus()"
+      (blur)="onInputBlur()"
+      class="form-control search-input"
+      autocomplete="off"
+    />
+    
+    @if (search.value) {
+      <button 
+        type="button" 
+        class="btn-clear" 
+        (click)="clearSearch()"
+        (mousedown)="$event.preventDefault()"
+      >
+        ×
+      </button>
+    }
+    
+    @if (isLoading) {
+      <div class="spinner-container">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (showSuggestions) {
+    <div class="suggestions-dropdown">
+      @if (isLoading) {
+        <div class="suggestion-item loading">
+          <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+          Recherche en cours...
+        </div>
+      }
+      
+      @if (noResults && !isLoading) {
+        <div class="suggestion-item no-results">
+          <i class="bi bi-search me-2"></i>
+          Aucun CV trouvé pour "{{ search.value }}"
+        </div>
+      }
+      
+      @for (cv of suggestions; track trackByCvId($index, cv)) {
+        <div 
+          class="suggestion-item"
+          (mousedown)="selectCv(cv)"
+        >
+          <div class="suggestion-content">
+            <!-- Ligne principale : Nom complet -->
+            <div class="cv-name-line">
+              <span class="cv-name">{{ cv.firstname }} {{ cv.name }}</span>
+            </div>
+            
+            <!-- Ligne secondaire : Âge et Profession -->
+            <div class="cv-details-line">
+              <span class="cv-age">({{ cv.age }} ans)</span>
+              <span class="cv-job">{{ cv.job }}</span>
+            </div>
+            
+            <!-- Ligne CIN -->
+            <div class="cv-cin-line">
+              <span class="cv-cin">CIN: {{ cv.cin }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,70 @@
+<div class="cv-search-container">
+  <!-- Barre de recherche -->
+  <div class="search-section">
+    <app-autocomplete
+      (cvSelected)="onCvSelected($event)"
+    ></app-autocomplete>
+  </div>
+
+  <!-- Affichage du CV sélectionné -->
+  @if (selectedCV(); as cv) {
+    <div class="cv-display">
+      <!-- En-tête principal -->
+      <div class="cv-header">
+        <h1 class="cv-main-title">{{ cv.firstname }} {{ cv.name }}</h1>
+        <h2 class="cv-subtitle">{{ cv.job }}</h2>
+      </div>
+
+      <!-- Section Informations avec case à cocher -->
+      <div class="cv-section">
+        <label class="checkbox-container">
+          <input type="checkbox" checked disabled>
+          <span class="checkmark"></span>
+          Informations
+        </label>
+        
+        <div class="info-grid">
+          <div class="info-row">
+            <span class="info-label">Name:</span>
+            <span class="info-value">{{ cv.name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Firstname:</span>
+            <span class="info-value">{{ cv.firstname }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Job:</span>
+            <span class="info-value">{{ cv.job }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Age:</span>
+            <span class="info-value">{{ cv.age }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">CIN:</span>
+            <span class="info-value">{{ cv.cin }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bouton de fermeture -->
+      <div class="action-section">
+        <button 
+          class="btn-close"
+          (click)="clearSelection()"
+        >
+          × Fermer
+        </button>
+      </div>
+    </div>
+  } @else {
+    <!-- État vide -->
+    <div class="no-selection">
+      <div class="placeholder-content">
+        <i class="bi bi-person-badge display-4 text-muted"></i>
+        <h3 class="text-muted mt-3">Aucun CV sélectionné</h3>
+        <p class="text-muted">Recherchez et sélectionnez un CV pour afficher ses détails</p>
+      </div>
+    </div>
+  }
+</div>
