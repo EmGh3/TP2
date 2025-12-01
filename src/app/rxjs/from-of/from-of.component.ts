@@ -11,7 +11,7 @@ export class FromOfComponent implements OnInit, OnDestroy {
   private fromSub: Subscription | null = null;
   private ofSub: Subscription | null = null;
 
-  constructor() {}
+  // no constructor needed
 
   ngOnInit(): void {
     // subscribe in ngOnInit so lifecycle is clearer

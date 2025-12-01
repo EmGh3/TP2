@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 })
 export class AuthService {
   authenticated = false;
-  constructor() {}
+  // no constructor needed
   isAuthentified(): boolean {
     this.authenticated = !!localStorage.getItem('user');
     return this.authenticated;

@@ -9,13 +9,11 @@ import { ToastrService } from 'ngx-toastr';
   styleUrls: ['./cv-card.component.css'],
 })
 export class CvCardComponent {
-  constructor(
     private embaucheService: EmbaucheService,
     private toastr: ToastrService
   ) {}
   @Input() cv: Cv | null = null;
-
-  ngOnInit() {}
+  
   embaucher() {
     if (this.cv) {
       if (this.embaucheService.embauche(this.cv)) {

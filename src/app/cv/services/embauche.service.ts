@@ -7,7 +7,7 @@ import { Cv } from '../model/cv';
 export class EmbaucheService {
   private embauchees: Cv[] = [];
 
-  constructor() {}
+  // no constructor needed
 
   /**
    *

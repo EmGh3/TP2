@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Todo } from '../model/todo';
 import { LoggerService } from '../../services/logger.service';
 
-let n = 1;
+const n = 1;
 
 @Injectable({
   providedIn: 'root',

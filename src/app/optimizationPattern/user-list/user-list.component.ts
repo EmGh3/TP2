@@ -20,10 +20,10 @@ export const fibonnaci = (n: number): number => {
   styleUrls: ['./user-list.component.css']
 })
 export class UserListComponent {
-  @Input() usersCluster: string = '';
+  @Input() usersCluster = '';
   @Input() users: User[] = [];
   @Output() add = new EventEmitter<string>();
-  userFullName: string = '';
+  userFullName = '';
   addUser() {
     this.add.emit(this.userFullName);
     this.userFullName = '';

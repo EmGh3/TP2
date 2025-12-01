@@ -1,4 +1,4 @@
-import { Component, inject, Output, EventEmitter, OnDestroy } from "@angular/core";
+import { Component, inject, Output, EventEmitter, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, FormControl } from "@angular/forms";
 import { debounceTime, distinctUntilChanged, switchMap, tap, catchError, of, Subject, takeUntil } from "rxjs";
 import { CvService } from "../services/cv.service";
@@ -9,7 +9,7 @@ import { Cv } from "../model/cv";
   templateUrl: "./autocomplete.component.html",
   styleUrls: ["./autocomplete.component.css"],
 })
-export class AutocompleteComponent implements OnDestroy {
+export class AutocompleteComponent implements OnDestroy, OnInit {
   private destroy$ = new Subject<void>();
   
   formBuilder = inject(FormBuilder);
