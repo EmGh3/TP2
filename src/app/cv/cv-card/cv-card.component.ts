@@ -9,6 +9,7 @@ import { ToastrService } from 'ngx-toastr';
   styleUrls: ['./cv-card.component.css'],
 })
 export class CvCardComponent {
+  constructor(
     private embaucheService: EmbaucheService,
     private toastr: ToastrService
   ) {}
