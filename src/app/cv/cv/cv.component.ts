@@ -1,37 +1,52 @@
-import { Component } from "@angular/core";
-import { Cv } from "../model/cv";
-import { LoggerService } from "../../services/logger.service";
-import { ToastrService } from "ngx-toastr";
+import { Component, computed, effect } from "@angular/core";
 import { CvService } from "../services/cv.service";
+import { ToastrService } from "ngx-toastr";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { catchError, of } from "rxjs";
+
 @Component({
   selector: "app-cv",
   templateUrl: "./cv.component.html",
   styleUrls: ["./cv.component.css"],
 })
 export class CvComponent {
-  cvs: Cv[] = [];
-  selectedCv: Cv | null = null;
-  /*   selectedCv: Cv | null = null; */
   date = new Date();
 
+  selectedCv = this.cvService.selectedCv;
+
+  cvs = toSignal(
+    this.cvService.getCvs().pipe(
+      catchError(() => {
+        this.toastr.error(`
+          Attention!! Les données sont fictives, problème serveur.
+        `);
+        return of(this.cvService.getFakeCvs());
+      })
+    ),
+    { initialValue: [] }
+  );
+
+  // --- Lazy loading Embauche ---
+  showEmbauche = false;
+  embaucheComponent: any = null;
+
   constructor(
-    private logger: LoggerService,
     private toastr: ToastrService,
     private cvService: CvService
   ) {
-    this.cvService.getCvs().subscribe({
-      next: (cvs) => {
-        this.cvs = cvs;
-      },
-      error: () => {
-        this.cvs = this.cvService.getFakeCvs();
-        this.toastr.error(`
-          Attention!! Les données sont fictives, problème avec le serveur.
-          Veuillez contacter l'admin.`);
-      },
+    effect(() => {
+      console.log("CV sélectionné :", this.selectedCv());
     });
-    this.logger.logger("je suis le cvComponent");
-    this.toastr.info("Bienvenu dans notre CvTech");
-    this.cvService.selectCv$.subscribe((cv) => (this.selectedCv = cv));
+
+    // 🎬 Différer automatiquement le chargement
+    setTimeout(() => {
+      this.loadEmbauche();
+    }, 2000); // affichage après 2 sec
+  }
+
+  async loadEmbauche() {
+    const module = await import("../embauche/embauche.component");
+    this.embaucheComponent = module.EmbaucheComponent;
+    this.showEmbauche = true;
   }
 }
