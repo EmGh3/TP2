@@ -22,27 +22,22 @@ export class DetailsCvComponent implements OnInit {
     public authService: AuthService
   ) {}
 
-  ngOnInit() {
+  async ngOnInit(): Promise<void> {
     const id = this.activatedRoute.snapshot.params['id'];
-    // use firstValueFrom for the one-shot HTTP call to avoid manual subscription
-    (async () => {
-      try {
-        this.cv = await firstValueFrom(this.cvService.getCvById(+id));
-      } catch (e) {
-        this.router.navigate([APP_ROUTES.cv]);
-      }
-    })();
+    try {
+      this.cv = await firstValueFrom(this.cvService.getCvById(+id));
+    } catch (e) {
+      this.router.navigate([APP_ROUTES.cv]);
+    }
   }
-  deleteCv(cv: Cv) {
-    // use async/await for clarity for this one-shot HTTP call
-    (async () => {
-      try {
-        await firstValueFrom(this.cvService.deleteCvById(cv.id));
-        this.toastr.success(`${cv.name} supprimé avec succès`);
-        this.router.navigate([APP_ROUTES.cv]);
-      } catch (e) {
-        this.toastr.error(`Problème avec le serveur veuillez contacter l'admin`);
-      }
-    })();
+
+  async deleteCv(cv: Cv): Promise<void> {
+    try {
+      await firstValueFrom(this.cvService.deleteCvById(cv.id));
+      this.toastr.success(`${cv.name} supprimé avec succès`);
+      this.router.navigate([APP_ROUTES.cv]);
+    } catch (e) {
+      this.toastr.error(`Problème avec le serveur veuillez contacter l'admin`);
+    }
   }
 }
