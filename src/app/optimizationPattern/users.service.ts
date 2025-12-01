@@ -25,5 +25,7 @@ export class UsersService {
       name,
       age: faker.datatype.number({min: 18, max: 30})
     });
+    return list
+
   }
 }
